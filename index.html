@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcquisitionRadar — Media & Data Acquisition Timeline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a3a;--text:#e8e8f0;--text2:#8888a0;--accent:#6c63ff;--accent2:#ff6b6b;--gold:#f0c040;--green:#4ecdc4;--blue:#45b7d1;--pink:#ff6b9d}
+body{font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.header{padding:40px 40px 20px;max-width:1400px;margin:0 auto}
+.header h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{color:var(--text2);margin-top:8px;font-size:1.05rem}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;padding:20px 40px;max-width:1400px;margin:0 auto}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px}
+.stat-card .label{font-size:.75rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2)}
+.stat-card .value{font-size:2rem;font-weight:700;margin-top:4px}
+.stat-card .sub{font-size:.85rem;color:var(--text2);margin-top:2px}
+.controls{padding:20px 40px;max-width:1400px;margin:0 auto;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.filter-btn{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;transition:all .2s}
+.filter-btn:hover,.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.timeline-container{max-width:1400px;margin:0 auto;padding:20px 40px 60px}
+.decade-section{margin-bottom:40px}
+.decade-header{font-size:1.4rem;font-weight:700;color:var(--accent);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.deal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.deal-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .3s;cursor:default;position:relative;overflow:hidden}
+.deal-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(108,99,255,.15)}
+.deal-card .sector-tag{position:absolute;top:12px;right:12px;font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.deal-card .year{font-size:.8rem;color:var(--text2);font-weight:600}
+.deal-card .target{font-size:1.15rem;font-weight:700;margin:6px 0 4px}
+.deal-card .amount{font-size:1.3rem;font-weight:800;color:var(--gold)}
+.deal-card .desc{font-size:.85rem;color:var(--text2);line-height:1.5;margin-top:8px}
+.deal-card .meta{display:flex;gap:12px;margin-top:12px;font-size:.75rem;color:var(--text2)}
+.deal-card .meta span{background:var(--surface2);padding:3px 8px;border-radius:4px}
+.sector-media .sector-tag{background:rgba(108,99,255,.2);color:var(--accent)}
+.sector-data .sector-tag{background:rgba(78,205,196,.2);color:var(--green)}
+.sector-tv .sector-tag{background:rgba(255,107,157,.2);color:var(--pink)}
+.sector-finance .sector-tag{background:rgba(240,192,64,.2);color:var(--gold)}
+.sector-health .sector-tag{background:rgba(69,183,209,.2);color:var(--blue)}
+.sector-digital .sector-tag{background:rgba(255,107,107,.2);color:var(--accent2)}
+.sector-real-estate .sector-tag{background:rgba(168,130,255,.2);color:#a882ff}
+.chart-section{max-width:1400px;margin:0 auto;padding:0 40px 40px}
+.chart-container{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+.chart-container h3{font-size:1.1rem;margin-bottom:16px;color:var(--text2)}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:200px;padding-top:20px}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1}
+.bar{width:100%;border-radius:4px 4px 0 0;min-height:2px;transition:height .5s;position:relative}
+.bar:hover{opacity:.85}
+.bar-label{font-size:.7rem;color:var(--text2);margin-top:6px;text-align:center}
+.bar-value{font-size:.65rem;color:var(--text);margin-bottom:4px;font-weight:600}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+@media(max-width:768px){
+.header{padding:24px 20px 12px}.header h1{font-size:1.6rem}
+.stats-row{padding:12px 20px;grid-template-columns:repeat(2,1fr)}
+.controls{padding:12px 20px}.timeline-container{padding:12px 20px 40px}
+.deal-grid{grid-template-columns:1fr}.chart-section{padding:0 20px 24px}
+.chart-grid{grid-template-columns:1fr}
+}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>AcquisitionRadar</h1>
+<p>A visual chronicle of landmark media, data & technology acquisitions — billions in deals reshaping the industry landscape</p>
+</div>
+
+<div class="stats-row" id="statsRow">
+<div class="stat-card"><div class="label">Total Deals Tracked</div><div class="value" id="totalDeals">—</div><div class="sub">Major acquisitions</div></div>
+<div class="stat-card"><div class="label">Combined Value</div><div class="value" id="totalValue">—</div><div class="sub">Aggregate deal value</div></div>
+<div class="stat-card"><div class="label">Sectors Covered</div><div class="value" id="totalSectors">—</div><div class="sub">Industry verticals</div></div>
+<div class="stat-card"><div class="label">Timespan</div><div class="value" id="timeSpan">—</div><div class="sub">Decades of dealmaking</div></div>
+</div>
+
+<div class="controls" id="controls"></div>
+
+<div class="chart-section">
+<div class="chart-grid">
+<div class="chart-container"><h3>Deal Value by Decade ($B)</h3><div class="bar-chart" id="decadeChart"></div></div>
+<div class="chart-container"><h3>Deal Count by Sector</h3><div class="bar-chart" id="sectorChart"></div></div>
+</div>
+</div>
+
+<div class="timeline-container" id="timeline"></div>
+
+<script>
+const DEALS=[
+// 1880s-1920s
+{year:1895,target:"New York Journal",amount:null,sector:"media",desc:"Acquired the Morning Journal, launching the famous circulation war with Pulitzer's World.",tags:["newspaper","NYC"]},
+{year:1903,target:"Los Angeles Examiner",amount:null,sector:"media",desc:"Founded to extend newspaper reach to the West Coast.",tags:["newspaper","expansion"]},
+{year:1905,target:"Cosmopolitan Magazine",amount:0.4,sector:"media",desc:"Purchased the iconic magazine, beginning the transformation into a media powerhouse.",tags:["magazine","iconic"]},
+{year:1911,target:"Harper's Bazaar",amount:null,sector:"media",desc:"Acquired one of America's oldest fashion magazines (est. 1867).",tags:["magazine","fashion"]},
+{year:1924,target:"San Antonio Express-News",amount:null,sector:"media",desc:"Expansion into Texas media markets.",tags:["newspaper","Texas"]},
+// 1940s-1960s
+{year:1953,target:"WBAL-TV Baltimore",amount:null,sector:"tv",desc:"Early television station acquisition, entering the broadcast era.",tags:["TV station","broadcast"]},
+{year:1958,target:"WISN-TV Milwaukee",amount:null,sector:"tv",desc:"Growing the television station portfolio in midwest markets.",tags:["TV station","midwest"]},
+// 1970s-1980s
+{year:1982,target:"Esquire Magazine",amount:null,sector:"media",desc:"Added the legendary men's magazine to the publishing portfolio.",tags:["magazine","men's"]},
+{year:1986,target:"Houston Chronicle",amount:415,sector:"media",desc:"Largest single newspaper acquisition at the time — became flagship daily.",tags:["newspaper","flagship"]},
+// 1990s
+{year:1990,target:"Haynes Publishing Group",amount:null,sector:"data",desc:"UK-based publisher of car manuals and data, entering B2B information.",tags:["data","automotive"]},
+{year:1993,target:"First DataBank (FDB)",amount:null,sector:"health",desc:"Acquired drug database company, pivoting into healthcare IT data.",tags:["healthcare","drug data"]},
+{year:1996,target:"King Features Syndicate",amount:null,sector:"media",desc:"Formalized ownership of world's premier comics and features syndicate (Blondie, Beetle Bailey).",tags:["syndication","comics"]},
+{year:1999,target:"San Francisco Chronicle",amount:660,sector:"media",desc:"Bought the anchor Bay Area newspaper, expanding West Coast presence.",tags:["newspaper","San Francisco"]},
+// 2000s
+{year:2000,target:"Zynx Health",amount:null,sector:"health",desc:"Clinical decision support company — evidence-based order sets for hospitals.",tags:["healthcare","clinical"]},
+{year:2003,target:"HGTV & Food Network (Scripps)",amount:null,sector:"tv",desc:"Early cable network partnership positioning (full acquisition came later).",tags:["cable","lifestyle"]},
+{year:2006,target:"Fitch Group",amount:1750,sector:"finance",desc:"Acquired remaining stake in Fitch Ratings — one of the Big Three credit rating agencies globally.",tags:["ratings","finance","landmark"]},
+{year:2009,target:"iCrossing",amount:325,sector:"digital",desc:"Digital marketing agency acquisition, entering the digital services space.",tags:["digital","marketing"]},
+{year:2009,target:"Hearst Tower (645 Madison)",amount:null,sector:"real-estate",desc:"Opened Foster + Partners' first NYC skyscraper — LEED Gold diagrid tower.",tags:["real estate","landmark"]},
+// 2010s
+{year:2011,target:"Lagardère Magazines (100+)",amount:651,sector:"media",desc:"Massive international magazine deal: 100+ titles across 14 countries including Elle.",tags:["magazine","international","Elle"]},
+{year:2012,target:"MCG Health",amount:null,sector:"health",desc:"Acquired clinical guidelines company (Milliman Care Guidelines) — evidence-based care.",tags:["healthcare","guidelines"]},
+{year:2014,target:"KSBW / WMOR TV Stations",amount:null,sector:"tv",desc:"Continued expansion of Hearst Television station group portfolio.",tags:["TV station","expansion"]},
+{year:2016,target:"Homecare Homebase",amount:null,sector:"health",desc:"Home health & hospice software platform — major healthcare IT play.",tags:["healthcare","SaaS"]},
+{year:2018,target:"QGenda",amount:null,sector:"health",desc:"Physician scheduling & workforce management software for health systems.",tags:["healthcare","workforce"]},
+{year:2018,target:"Camp Systems",amount:null,sector:"data",desc:"Aviation maintenance tracking platform — B2B data in aerospace.",tags:["aviation","SaaS"]},
+{year:2019,target:"CrowdStrike (Investment)",amount:null,sector:"finance",desc:"Early investor in cybersecurity unicorn via Hearst Ventures — massive returns post-IPO.",tags:["venture","cybersecurity"]},
+{year:2019,target:"KUBRA",amount:null,sector:"data",desc:"Customer communications & payment platform for utilities & government.",tags:["payments","utilities"]},
+// 2020s
+{year:2020,target:"MedBridge",amount:null,sector:"health",desc:"Digital health education & patient engagement platform.",tags:["healthcare","education"]},
+{year:2021,target:"GlobalData Automotive",amount:null,sector:"data",desc:"Automotive intelligence data business — continuing B2B data expansion.",tags:["automotive","intelligence"]},
+{year:2022,target:"JAGGAER (Stake)",amount:null,sector:"data",desc:"Procurement & supply chain software investment — enterprise SaaS play.",tags:["procurement","SaaS"]},
+{year:2023,target:"Penn Foster Education",amount:null,sector:"data",desc:"Online education & workforce training platform acquisition.",tags:["education","workforce"]},
+{year:2024,target:"Various HearstLab Portfolio",amount:null,sector:"finance",desc:"Continued venture investments through HearstLab & Level Up Ventures programs.",tags:["venture","startups"]}
+];
+
+const SECTOR_COLORS={"media":"var(--accent)","data":"var(--green)","tv":"var(--pink)","finance":"var(--gold)","health":"var(--blue)","digital":"var(--accent2)","real-estate":"#a882ff"};
+const SECTOR_LABELS={"media":"Media & Publishing","data":"Data & Technology","tv":"Television","finance":"Financial Services","health":"Healthcare IT","digital":"Digital","real-estate":"Real Estate"};
+
+let activeFilter="all";
+
+function init(){
+ // Stats
+ document.getElementById("totalDeals").textContent=DEALS.length;
+ const totalVal=DEALS.reduce((s,d)=>s+(d.amount||0),0);
+ document.getElementById("totalValue").textContent="$"+(totalVal/1000).toFixed(1)+"B+";
+ const sectors=[...new Set(DEALS.map(d=>d.sector))];
+ document.getElementById("totalSectors").textContent=sectors.length;
+ const minY=Math.min(...DEALS.map(d=>d.year));
+ const maxY=Math.max(...DEALS.map(d=>d.year));
+ document.getElementById("timeSpan").textContent=Math.floor((maxY-minY)/10)*10+"+ yrs";
+
+ // Filters
+ const ctrl=document.getElementById("controls");
+ let html='<button class="filter-btn active" data-f="all">All Sectors</button>';
+ sectors.forEach(s=>{html+=`<button class="filter-btn" data-f="${s}">${SECTOR_LABELS[s]||s}</button>`});
+ ctrl.innerHTML=html;
+ ctrl.querySelectorAll(".filter-btn").forEach(b=>b.addEventListener("click",function(){
+   ctrl.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active"));
+   this.classList.add("active");
+   activeFilter=this.dataset.f;
+   renderTimeline();
+ }));
+
+ renderCharts();
+ renderTimeline();
+}
+
+function renderCharts(){
+ // Decade chart
+ const decades={};
+ DEALS.forEach(d=>{const dec=Math.floor(d.year/10)*10+"s";decades[dec]=(decades[dec]||0)+(d.amount||0)});
+ const maxDec=Math.max(...Object.values(decades),1);
+ let dhtml="";
+ Object.entries(decades).sort().forEach(([dec,val])=>{
+   const h=Math.max((val/maxDec)*160,4);
+   dhtml+=`<div class="bar-col"><div class="bar-value">${val>0?"$"+(val>=1000?(val/1000).toFixed(1)+"B":val+"M"):"—"}</div><div class="bar" style="height:${h}px;background:var(--accent)"></div><div class="bar-label">${dec}</div></div>`;
+ });
+ document.getElementById("decadeChart").innerHTML=dhtml;
+
+ // Sector chart
+ const sc={};
+ DEALS.forEach(d=>{sc[d.sector]=(sc[d.sector]||0)+1});
+ const maxSc=Math.max(...Object.values(sc));
+ let shtml="";
+ Object.entries(sc).sort((a,b)=>b[1]-a[1]).forEach(([s,c])=>{
+   const h=Math.max((c/maxSc)*160,4);
+   shtml+=`<div class="bar-col"><div class="bar-value">${c}</div><div class="bar" style="height:${h}px;background:${SECTOR_COLORS[s]||'var(--text2)'}"></div><div class="bar-label">${SECTOR_LABELS[s]||s}</div></div>`;
+ });
+ document.getElementById("sectorChart").innerHTML=shtml;
+}
+
+function renderTimeline(){
+ const filtered=activeFilter==="all"?DEALS:DEALS.filter(d=>d.sector===activeFilter);
+ const byDecade={};
+ filtered.forEach(d=>{const dec=Math.floor(d.year/10)*10+"s";(byDecade[dec]=byDecade[dec]||[]).push(d)});
+ let html="";
+ Object.entries(byDecade).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([dec,deals])=>{
+   html+=`<div class="decade-section"><div class="decade-header">${dec}</div><div class="deal-grid">`;
+   deals.sort((a,b)=>b.year-a.year).forEach(d=>{
+     const amtStr=d.amount?("$"+(d.amount>=1000?(d.amount/1000).toFixed(1)+"B":d.amount+"M")):"Undisclosed";
+     html+=`<div class="deal-card sector-${d.sector}"><span class="sector-tag">${SECTOR_LABELS[d.sector]||d.sector}</span><div class="year">${d.year}</div><div class="target">${d.target}</div><div class="amount">${amtStr}</div><div class="desc">${d.desc}</div><div class="meta">${d.tags.map(t=>"<span>"+t+"</span>").join("")}</div></div>`;
+   });
+   html+=`</div></div>`;
+ });
+ document.getElementById("timeline").innerHTML=html;
+}
+
+init();
+</script>
+</body>
+</html>
